@@ -35,7 +35,8 @@ focus is on a few key principles:
 
   3. Efficiency refers to making the best use of our available resources.
 
-  4. Reliability is the system's ability to maintain composure when failures occur.
+  4. Reliability is the system's ability to maintain composure when failures
+     occur.
 
 - [002] CAP Theorem ------------------------------------------------------------
 
