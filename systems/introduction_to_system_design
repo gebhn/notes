@@ -1,0 +1,192 @@
+Introduction To System Design
+________________________________________________________________________________
+
+Notes on high level system design concepts.
+
+[000] Index
+________________________________________________________________________________
+
+* Requirements ........................................................... [001]
+  * CAP Theorem .......................................................... [002]
+  * Service Level Objectives & Agreements  ............................... [003]
+* Networking ............................................................. [l01]
+  * IP Addresses ......................................................... [102]
+  * TCP .................................................................. [103]
+  * UDP .................................................................. [104]
+* Application Layer Protocols ............................................ [201]
+  * HTTP ................................................................. [202]
+  * WebSockets ........................................................... [203]
+  * SMTP ................................................................. [204]
+  * FTP .................................................................. [205]
+  * SSH .................................................................. [206]
+  * Real-time Communication .............................................. [207]
+  * RPC .................................................................. [208]
+
+[001] Requirements
+________________________________________________________________________________
+
+When discussing good design in the context of distributed systems, the main
+focus is on a few key principles:
+
+  1. Scalability is the ability for a system to grow with its user base.
+
+  2. Maintainability means ensuring future developers can understand and improve
+     on the system.
+
+  3. Efficiency refers to making the best use of our available resources.
+
+  4. Reliability is the system's ability to maintain composure when failures occur.
+
+- [002] CAP Theorem ------------------------------------------------------------
+
+  A set of principles that guide us in making trade-offs between the three key
+  components of a distributed system:
+
+   1. Consistency ensures that all nodes in the system have the same data at
+      the same time. If you make a change to one node, that change should be
+      reflected across all nodes.
+
+   2. Availability means that the system is always operational and responsive
+      to requests regardless of what may be occurring behind the scenes.
+
+   3. Partition Tolerance refers to the system's ability to continuing
+      functioning even when a network partition has occurred, meaning if there
+      is a disruption in communication between nodes, the system continues to
+      function.
+
+  According to CAP Theorem, a distributed system can only achieve two out of
+  three of these properties at once while sacrificing on the third. For
+  example, a banking system must be consistent and partition tolerant, and
+  therefore sacrifices on availability can be made to ensure this remains
+  true.
+
+  Every design decision comes with trade-offs, so focus on finding the best
+  solution for a specific use-case is the primary goal.
+
+- [003] Service Level Objectives & Agreements ----------------------------------
+
+  A Service Level Objective (SLO) are goals for our system's performance and
+  reliability. For example, we may have a SLO which states our service should
+  have no more than 300ms response time and with 99.9% uptime.
+
+  A Service Level Agreement (SLA) is a formal contract with users which defines
+  the minimum level of service we are committing to provide. If we guarantee
+  99.999% availability, we may have to compensate users for this failure.
+
+[101] Networking
+________________________________________________________________________________
+
+Networking basics refer to the ways in which computers communicate with one
+another. At the heart of these communications is the IP Address, which is a
+unique identifier for each device on a network. Additionally, there is an
+application layer where data specific to the application protocol is stored. The
+data in these packets is formatted to specific application protocol data, such
+as HTTP, so that the data is interpreted correctly by the receiving device.
+
+- [102] IP Addresses -----------------------------------------------------------
+
+  When two computers communicate over a network they send and receive packets of
+  information, each containing an IP Header which contains the information such
+  as the sender and receiver IP Address, ensuring each device receives the
+  correct information. This process is governed by the IP Protocol, which is a
+  set of rules that defines how data is sent and received.
+
+- [103] TCP --------------------------------------------------------------------
+
+  TCP operates at the transport layer and ensures reliable communication. Each
+  data packet includes a TCP header which carries essential information like
+  source and destination port, sequence number, and control flags which manages
+  the connection and data flow.
+
+  TCP is known for its reliability and ensures the complete and correct delivery
+  of data packets, which is enforced by sequencing and the TCP handshake, which
+  is a three-way handshake which establishes a stable connection between two
+  devices.
+
+  The handshake is as follows:
+
+    1. The Client sends a SYN (SYNCHRONIZE) message.
+
+    2. The Server responds with a SYN+ACK (SYNCHONIZE+ACKNOWLEDGE) message.
+
+    3. The Client responds with a ACK (ACKNOWLEDGE) message.
+
+- [104] UDP --------------------------------------------------------------------
+
+  UDP operates differently than TCP, in that the communication protocol does not
+  first establish a connection before sending data, and does not guarantee the
+  delivery or ordering of packets, however, because UDP is faster than TCP it is
+  preferable for video calls or live streaming where speed is crucial and a
+  level of data loss is acceptable.
+
+[201] Application Layer Protocols
+________________________________________________________________________________
+
+Application layer protocols are sets of rules that enable applications to
+communicate over a network. They standardize data formats and procedures for
+exchanging information, with common examples including HTTP for web browsing,
+SMTP for email, and FTP for file transfers.
+
+- [202] HTTP -----------------------------------------------------------------
+
+  The most essential Aplication Layer Protocol is HTTP, which is built on TCP/IP
+  and can be thought of as a conversation with no memory. Each transaction is
+  separate, meaning the server doesn't have to store context between requests,
+  as each request has all of the required information to continue communicating.
+
+  Each request header contains information like request method, and url, while
+  body contains the substance of the request or response. Each response also
+  includes a status code which indicates the result of a request.
+
+- [203] WebSockets -----------------------------------------------------------
+
+  For realtime updates, WebSockets provide a two-way communication channel over
+  a single long-lived connection, allowing servers to push realtime updates to
+  clients. This is important for applications which require a constant stream of
+  updates without the overhead of repeated HTTP request/response cycles.
+
+  It is commonly used for chat applications or stock market feeds where the
+  action never stops and neither does the conversation.
+
+- [204] SMTP -----------------------------------------------------------------
+
+  SMTP is the protocol for sending e-mail messages between servers, most e-mail
+  clients use SMTP for sending e-mails and either IMAP or POP3 for retrieving
+  them.
+
+  IMAP is used to retrieve e-mails from a server, allowing the client to access
+  and manipulate messages. This is ideal for uses who need to access their
+  e-mails from multiple devices.
+
+  POP3 is used for downloading e-mails from a server to a local client,
+  typically used when e-mails are managed from a single device.
+
+- [205] FTP -------------------------------------------------------------------
+
+  FTP is often used to transfer files between a client and a server and is
+  useful for backing up files.
+
+- [206] SSH -------------------------------------------------------------------
+
+  SSH is used for operating network services securely on an unsecured network.
+  It is commonly used for logging into a remote machine and executing commands
+  or transfering files.
+
+- [207] Real-time Communication  ----------------------------------------------
+
+  There also exist several real-time communication protocols such as WebRTC,
+  which enables browser-to-browser applications to communicate in real-time,
+  such as for voice calls, video chats, or live streaming.
+
+  MQTT is a lightweight messsaging protocol suitable for IoT devices.
+
+  AMQP is a protocol for message-oriented middleware providing robustness and
+  security for enterprise level message communication, for example, RabbitMQ.
+
+- [208] RPC  ------------------------------------------------------------------
+
+  RPC or Remote Procedure Calls, allows a program on one device to execute code
+  on another server or device. It's a method used to invoke a function as if it
+  were a local call, when in reality the function is executed on a remote
+  machine. It abstracts the details of the network communication, allowing the
+  developer to interact with the function as if it were local.

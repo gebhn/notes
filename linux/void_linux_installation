@@ -1,0 +1,184 @@
+Void Linux Installation
+________________________________________________________________________________
+
+!! Work in Progress !!
+
+A general overview of the steps I take to configure my Void Linux installation.
+The notes are personal and make assumptions about hardware and preferences that
+you may or may not share.
+
+[000] Index
+________________________________________________________________________________
+
+* Assumptions ............................................................ [001]
+  * Hardware ............................................................. [002]
+  * Features ............................................................. [003]
+* Installation ........................................................... [101]
+  * Networking ........................................................... [102]
+  * Encryption ........................................................... [103]
+  * Filesystems .......................................................... [104]
+  * Bootstrapping ........................................................ [105]
+* Post-Install ........................................................... [201]
+
+[001] Assumptions
+________________________________________________________________________________
+
+Here I will outline the assumptions these notes take about your hardware, which
+may or may not match my own.
+
+- [002] Hardware ---------------------------------------------------------------
+
+  I am installing on an AMD Framework 13 7040 series laptop. I have 32GB of RAM
+  and one 250GB NVME device for storage. The following kernel drivers are
+  required for my uses:
+
+  * amdgpu
+  * snd_hda_intel
+  * snd_sof_amd_rembrandt
+  * snd_sof_amd_acp
+  * mt7921e
+  * bluetooth
+  * btmtk
+  * btusb
+  * hid_multitouch
+  * i2c_designware_platform
+  * pinctrl_amd
+  * uvcvideo
+
+- [003] Features ---------------------------------------------------------------
+
+  The following are feature "highlights" of the installation:
+
+  * efibootmgr
+  * luks2
+  * lvm
+  * ext4
+  * hibernate
+  * musl
+
+[101] Installation
+________________________________________________________________________________
+
+Begin by booting from the Void Linux installation media. Once you have booted
+into the media, log into the root account:
+
++------------------------------------------------------------------------------+
+|                                                                              |
+|   # username: root                                                           |
+|   # password: voidlinux                                                      |
+|                                                                              |
++------------------------------------------------------------------------------+
+
+Drop into a bash shell for better tab completion:
+
++------------------------------------------------------------------------------+
+|                                                                              |
+|   # bash                                                                     |
+|                                                                              |
++------------------------------------------------------------------------------+
+
+- [102] Networking -------------------------------------------------------------
+
+  It's assumed that this installation is taking place with access to a WiFi
+  connection.
+
+  +----------------------------------------------------------------------------+
+  |                                                                            |
+  |   # SSID=<your SSID>                                                       |
+  |   # PASS=<your PASSWORD>                                                   |
+  |   # IF=<your INTERFACE>                                                    |
+  |                                                                            |
+  |   # rm -rf /run/wpa_supplicant                                             |
+  |   # wpa_passphrase $SSID $PASS >> /etc/wpa_supplicant/wpa_supplicant.conf  |
+  |   # wpa_supplicant -B -i $IF -c /etc/wpa_supplicant/wpa_supplicant.conf    |
+  |                                                                            |
+  +----------------------------------------------------------------------------+
+
+- [103] Encryption -------------------------------------------------------------
+
+  Prepare the disk:
+
+  +----------------------------------------------------------------------------+
+  |                                                                            |
+  |   # nvme format -ses 1 -n1 /dev/nvme0n1                                    |
+  |   # blkdiscard -f /dev/nvme0n1                                             |
+  |                                                                            |
+  +----------------------------------------------------------------------------+
+
+  Create two partitions however you prefer:
+
+  +----------------------------------------------------------------------------+
+  |                                                                            |
+  |   /dev/nvme0n1p1   512MB   EFI Partition                                   |
+  |   /dev/nvme0n1p2   -       Linux Filesystem                                |
+  |                                                                            |
+  +----------------------------------------------------------------------------+
+
+  Encrypt the root partition:
+
+  +----------------------------------------------------------------------------+
+  |                                                                            |
+  |   # cryptsetup luksFormat --type luks2 /dev/nvme0n1p2                      |
+  |   # cryptsetup luksOpen /dev/nvme0n1p2 cryptroot                           |
+  |                                                                            |
+  +----------------------------------------------------------------------------+
+
+- [104] Filesystems ------------------------------------------------------------
+
+  Create the filesystems:
+
+  +----------------------------------------------------------------------------+
+  |                                                                            |
+  |   # vgcreate vg0 /dev/mapper/cryptroot                                     |
+  |                                                                            |
+  |   # lvcreate --name swap -L 32G vg0                                        |
+  |   # lvcreate --name root -l 100%FREE vg0                                   |
+  |                                                                            |
+  +----------------------------------------------------------------------------+
+
+  Format the partitions:
+
+  +----------------------------------------------------------------------------+
+  |                                                                            |
+  |   # mkfs.vfat -F32 -n efi /dev/nvme0n1p1                                   |
+  |   # mkfs.ext4 -L root /dev/vg0/root                                        |
+  |                                                                            |
+  |   # mkswap -L swap /dev/vg0/swap                                           |
+  |   # swapon -v /dev/vg0/swap                                                |
+  |                                                                            |
+  +----------------------------------------------------------------------------+
+
+  Mount the filesystems:
+
+  +----------------------------------------------------------------------------+
+  |                                                                            |
+  |   # mount /dev/vg0/root /mnt                                               |
+  |                                                                            |
+  |   # mkdir -p /mnt/boot                                                     |
+  |   # mount /dev/nvme0n1p1 /mnt/boot                                         |
+  |                                                                            |
+  |   # for dir in dev proc sys run; do                                        |
+  |   # > mkdir /mnt/$dir                                                      |
+  |   # > mount --rbind --make-rslave /$dir /mnt/$dir                          |
+  |   # > done                                                                 |
+  |                                                                            |
+  +----------------------------------------------------------------------------+
+
+- [105] Bootstrapping ----------------------------------------------------------
+
+  Install base packages:
+
+  +----------------------------------------------------------------------------+
+  |                                                                            |
+  |   # ARCH=x86_64-musl                                                       |
+  |   # REPO=https://repo-default.voidlinux.org/current/musl                   |
+  |                                                                            |
+  |   # XBPS_ARCH=$ARCH xbps-install -S -r /mnt -R "$REPO" \                   |
+  |   # base-minimal base-devel bash ncurses curl git e2fsprogs \              |
+  |   # iputils iproute2 iwd linux linux-firmware util-linux \                 |
+  |   # efibootmgr dracut lvm2 cryptsetup opendoas openssh openntpd            |
+  |                                                                            |
+  +----------------------------------------------------------------------------+
+
+[201] Post-Install
+________________________________________________________________________________
