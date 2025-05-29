@@ -18,6 +18,7 @@ ________________________________________________________________________________
   * Encryption ........................................................... [103]
   * Filesystems .......................................................... [104]
   * Bootstrapping ........................................................ [105]
+  * Bootloader ........................................................... [106]
 * Post-Install ........................................................... [201]
 
 [001] Assumptions
@@ -173,10 +174,58 @@ Drop into a bash shell for better tab completion:
   |   # ARCH=x86_64-musl                                                       |
   |   # REPO=https://repo-default.voidlinux.org/current/musl                   |
   |                                                                            |
-  |   # XBPS_ARCH=$ARCH xbps-install -S -r /mnt -R "$REPO" \                   |
-  |   # base-minimal base-devel bash ncurses curl git e2fsprogs \              |
-  |   # iputils iproute2 iwd linux linux-firmware util-linux \                 |
-  |   # efibootmgr dracut lvm2 cryptsetup opendoas openssh openntpd            |
+  |   # XBPS_ARCH=$ARCH xbps-install -S -r /mnt -R "$REPO"      \              |
+  |     base-minimal base-devel bash ncurses curl git e2fsprogs \              |
+  |     iputils iproute2 iwd linux linux-firmware util-linux    \              |
+  |     efibootmgr dracut lvm2 cryptsetup opendoas openssh openntpd            |
+  |                                                                            |
+  +----------------------------------------------------------------------------+
+
+  Chroot into the system:
+
+  +----------------------------------------------------------------------------+
+  |                                                                            |
+  |   # xchroot /mnt /bin/bash                                                 |
+  |   # chown root:root /                                                      |
+  |   # chmod 755 /                                                            |
+  |   # passwd                                                                 |
+  |                                                                            |
+  +----------------------------------------------------------------------------+
+
+  Write /etc/fstab:
+
+  +----------------------------------------------------------------------------+
+  |                                                                            |
+  |                                                                            |
+  +----------------------------------------------------------------------------+
+
+- [107] Bootloader -------------------------------------------------------------
+
+  Configure Dracut:
+
+  +----------------------------------------------------------------------------+
+  |                                                                            |
+  |   # CONFDIR=/etc/dracut.conf.d                                             |
+  |                                                                            |
+  |   # echo 'hostonly=yes' > $CONFDIR/10-hostonly.conf                        |
+  |   # echo 'hostonly_cmdline=no' >> $CONFDIR/10-hostonly.conf                |
+  |   # echo 'add_dracutmodules+=" resume "' > $CONFDIR/20-resume.conf         |
+  |   # echo 'add_dracutmodules+=" crypt "' > $CONFDIR/20-crypt.conf           |
+  |   # echo 'use_fstab=yes' > $CONFDIR/30-fstab.conf                          |
+  |                                                                            |
+  +----------------------------------------------------------------------------+
+
+  Configure the efibootmgr hook:
+
+  +----------------------------------------------------------------------------+
+  |                                                                            |
+  |                                                                            |
+  +----------------------------------------------------------------------------+
+
+  Regenerate initramfs:
+
+  +----------------------------------------------------------------------------+
+  |                                                                            |
   |                                                                            |
   +----------------------------------------------------------------------------+
 
